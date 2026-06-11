@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>PANEL AJSHOP — Single Page</title>
+  <title>PANEL AJSHOP — Single Page (Access Key)</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
   <style>
@@ -20,6 +20,10 @@
     pre{background:#0f172a;color:#e6eef8;padding:12px;border-radius:6px}
     footer{font-size:13px;color:#94a3b8;margin-top:26px}
     @media(max-width:991px){.sidebar{display:none}}
+
+    /* Modal custom */
+    .access-modal .modal-content{background:linear-gradient(180deg, rgba(10,8,18,0.95), rgba(8,6,16,0.92));border:1px solid rgba(255,255,255,0.04);color:#efeaff}
+    .access-input{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);padding:12px;border-radius:10px;color:#fff;width:100%}
   </style>
 </head>
 <body>
@@ -172,7 +176,7 @@
             <pre>
 AJSHOP — Admin Panel (Single Page Demo)
 Backend: Mock (storage browser)
-Auth: Demo admin Ajipang:775
+Auth: Access key required (client-side demo)
 Fitur: Users, Members, Products, Dashboard
             </pre>
             <p class="small-muted">Instruksi: Klik <code>Inisialisasi Data</code> untuk membuat data contoh jika belum ada.</p>
@@ -201,8 +205,28 @@ Fitur: Users, Members, Products, Dashboard
     </div>
   </div>
 
+  <!-- Access Key Modal -->
+  <div class="modal fade access-modal" id="accessModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content p-3">
+        <div class="modal-body">
+          <h5 class="text-center mb-2">Masukkan Access Key</h5>
+          <p class="text-center small-muted">Masukkan access key untuk membuka panel (demo client-side)</p>
+          <input id="accessKeyInput" class="access-input" placeholder="Contoh: AJSHOP-2026" aria-label="Access key" />
+          <div class="d-grid mt-3">
+            <button id="accessSubmit" class="btn gradient-btn">Buka Panel</button>
+          </div>
+          <div id="accessMsg" class="mt-2 text-center small-muted" style="font-size:13px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    // Demo static access key embedded in HTML
+    const DEMO_ACCESS_KEY = 'AJSHOP-2026'; // <= change this value if you want a different demo key
+
     // Simple single-file SPA logic storing data in localStorage
     const DEFAULT_ADMIN = {id:1,username:'Ajipang',email:'admin@ajshop.oi',password:'775',role:'admin',is_active:true};
 
@@ -245,7 +269,7 @@ Fitur: Users, Members, Products, Dashboard
       ];
       save(KEY_MEMBERS,members);
       save(KEY_ACTIVITIES,[{id:1,user_id:1,action:'INIT',description:'Database initialized',created_at:nowISO()}]);
-      alert('Data contoh berhasil dibuat. Panel akan otomatis login sebagai Ajipang.');
+      showToast('Data contoh berhasil dibuat.');
       renderAll();
     }
 
@@ -335,8 +359,8 @@ Fitur: Users, Members, Products, Dashboard
     }
 
     // Logout
-    $('#btnLogout').addEventListener('click', ()=>{ clearAuth(); renderAll(); showPage('dashboard'); });
-    $('#navLogout').addEventListener('click', (e)=>{ e.preventDefault(); clearAuth(); renderAll(); showPage('dashboard'); });
+    $('#btnLogout').addEventListener('click', ()=>{ clearAuth(); renderAll(); showPage('dashboard'); showAccessModalIfNeeded(); });
+    $('#navLogout').addEventListener('click', (e)=>{ e.preventDefault(); clearAuth(); renderAll(); showPage('dashboard'); showAccessModalIfNeeded(); });
 
     // Init data button
     $('#btnInit').addEventListener('click', ()=>{ if(confirm('Inisialisasi data contoh? Ini akan menimpa data lokal.')){ initData(); }});
@@ -427,15 +451,55 @@ Fitur: Users, Members, Products, Dashboard
     // Refresh stats
     $('#refreshStats').addEventListener('click', ()=>{ renderStats(); });
 
-    // Initial rendering & start: auto-login as admin and show dashboard
-    (function(){
-      // If no users/data, leave data empty until user clicks Inisialisasi Data
-      if(!getAuth()){
-        // Auto set admin auth so the main menu is accessible immediately
+    // Access modal logic
+    const accessModalEl = document.getElementById('accessModal');
+    const accessModal = new bootstrap.Modal(accessModalEl, {backdrop:'static', keyboard:false});
+    const accessInput = document.getElementById('accessKeyInput');
+    const accessMsg = document.getElementById('accessMsg');
+
+    function showAccessModal(){ accessInput.value=''; accessMsg.textContent=''; accessModal.show(); accessInput.focus(); }
+    function hideAccessModal(){ accessModal.hide(); }
+    function showAccessModalIfNeeded(){ if(!getAuth()){ showAccessModal(); } }
+
+    document.getElementById('accessSubmit').addEventListener('click', ()=>{
+      const val = accessInput.value.trim();
+      if(!val){ accessMsg.textContent = 'Masukkan access key.'; return; }
+      if(val === DEMO_ACCESS_KEY){
+        // success
         setAuth(DEFAULT_ADMIN);
+        pushActivity(DEFAULT_ADMIN.id,'LOGIN','Demo login with access key');
+        renderAll();
+        hideAccessModal();
+        showToast('Access key valid — Panel terbuka (demo)');
+      } else {
+        accessMsg.textContent = 'Access key salah.';
+        showToast('Access key salah', 'error');
       }
+    });
+
+    // Allow pressing Enter in input
+    accessInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('accessSubmit').click(); } });
+
+    // small toast implementation
+    function showToast(msg, type='info'){
+      let t = document.createElement('div');
+      t.textContent = msg;
+      Object.assign(t.style, {
+        position:'fixed', right:'18px', bottom:'18px', background: type==='error' ? 'linear-gradient(90deg,#ff6b6b,#ff8f8f)' : 'linear-gradient(90deg,#6e4bff,#c17bff)',
+        color:'#fff', padding:'10px 14px', borderRadius:'10px', boxShadow:'0 10px 30px rgba(107,44,255,0.18)', zIndex:9999,
+        fontSize:'13px', opacity:0, transition:'opacity .18s, transform .18s', transform:'translateY(8px)'
+      });
+      document.body.appendChild(t);
+      requestAnimationFrame(()=> { t.style.opacity = 1; t.style.transform = 'translateY(0)'; });
+      setTimeout(()=> { t.style.opacity = 0; t.style.transform = 'translateY(8px)'; setTimeout(()=> t.remove(),220); }, 1800);
+    }
+
+    // Initial rendering & start: show access modal if not authed
+    (function(){
+      // If no users/data, it's fine; user can initialize
       renderAll();
       showPage('dashboard');
+      showAccessModalIfNeeded();
     })();
 
   </script>
