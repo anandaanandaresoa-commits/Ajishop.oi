@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - PANEL AJSHOP{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0"><i class="bi bi-speedometer2"></i> Dashboard</h1>
+            <p class="text-muted">Welcome to AJSHOP Admin Panel</p>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Users</h6>
+                            <h3 class="mb-0" id="totalUsers">0</h3>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-people text-primary" style="font-size: 24px;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Members</h6>
+                            <h3 class="mb-0" id="totalMembers">0</h3>
+                        </div>
+                        <div class="bg-success bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-person-check text-success" style="font-size: 24px;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Products</h6>
+                            <h3 class="mb-0" id="totalProducts">0</h3>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-box text-warning" style="font-size: 24px;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="text-muted mb-2">Active Members</h6>
+                            <h3 class="mb-0" id="activeMembers">0</h3>
+                        </div>
+                        <div class="bg-info bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-activity text-info" style="font-size: 24px;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts and Tables -->
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="card-title mb-0"><i class="bi bi-clock-history"></i> Recent Activities</h5>
+                </div>
+                <div class="card-body">
+                    <div id="activityTable"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="card-title mb-0"><i class="bi bi-info-circle"></i> System Info</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <small class="text-muted">Panel Version</small>
+                            <h6 class="mb-0">1.0.0</h6>
+                        </li>
+                        <li class="mb-3">
+                            <small class="text-muted">Last Updated</small>
+                            <h6 class="mb-0" id="lastUpdate">Loading...</h6>
+                        </li>
+                        <li class="mb-3">
+                            <small class="text-muted">Status</small>
+                            <h6 class="mb-0"><span class="badge bg-success">Online</span></h6>
+                        </li>
+                        <li>
+                            <small class="text-muted">Database</small>
+                            <h6 class="mb-0"><span class="badge bg-info">Connected</span></h6>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Get token from localStorage
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+        window.location.href = '/login';
+    }
+    
+    // Fetch dashboard statistics
+    async function loadDashboard() {
+        try {
+            const response = await axios.get('/api/dashboard/stats', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            const data = response.data;
+            
+            // Update statistics
+            document.getElementById('totalUsers').textContent = data.total_users;
+            document.getElementById('totalMembers').textContent = data.total_members;
+            document.getElementById('totalProducts').textContent = data.total_products;
+            document.getElementById('activeMembers').textContent = data.active_members;
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            
+            // Build activity table
+            let activityHTML = '<div class="table-responsive"><table class="table table-hover mb-0">';
+            activityHTML += '<thead class="table-light"><tr><th>User</th><th>Action</th><th>Time</th></tr></thead><tbody>';
+            
+            if (data.recent_activities && data.recent_activities.length > 0) {
+                data.recent_activities.forEach(activity => {
+                    const date = new Date(activity.created_at);
+                    const timeStr = date.toLocaleTimeString();
+                    activityHTML += `<tr>
+                        <td><small class="fw-500">${activity.user}</small></td>
+                        <td><span class="badge bg-secondary">${activity.action}</span></td>
+                        <td><small class="text-muted">${timeStr}</small></td>
+                    </tr>`;
+                });
+            } else {
+                activityHTML += '<tr><td colspan="3" class="text-center text-muted py-3">No activities yet</td></tr>';
+            }
+            
+            activityHTML += '</tbody></table></div>';
+            document.getElementById('activityTable').innerHTML = activityHTML;
+            
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+            if (error.response && error.response.status === 401) {
+                window.location.href = '/login';
+            }
+        }
+    }
+    
+    // Load dashboard on page load
+    loadDashboard();
+    
+    // Refresh statistics every 30 seconds
+    setInterval(loadDashboard, 30000);
+</script>
+{% endblock %}

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - PANEL AJSHOP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        .login-panel {
+            padding: 50px 40px;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .login-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .form-control {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            font-weight: 600;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+        .remember-me input {
+            margin-right: 8px;
+        }
+        .alert {
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .spinner-border {
+            display: none;
+        }
+        .loading .spinner-border {
+            display: inline-block !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container" style="max-width: 400px; width: 100%;">
+        <div class="login-panel">
+            <div class="login-header">
+                <h1><i class="bi bi-shop"></i> AJSHOP</h1>
+                <p>Admin Panel - Secure Login</p>
+            </div>
+            
+            <div id="alertContainer"></div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" required placeholder="Enter your username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" required placeholder="Enter your password">
+                </div>
+                
+                <div class="remember-me">
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember" style="margin: 0; cursor: pointer;">Remember me</label>
+                </div>
+                
+                <button type="submit" class="btn btn-login">
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    <span class="btn-text">Login</span>
+                </button>
+            </form>
+            
+            <hr class="my-4">
+            
+            <div class="alert alert-info small" role="alert">
+                <strong>Demo Credentials:</strong><br>
+                <small>Username: <code>Ajipang</code><br>
+                Password: <code>775</code></small>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const form = document.getElementById('loginForm');
+            const alertContainer = document.getElementById('alertContainer');
+            const btnText = form.querySelector('.btn-text');
+            
+            // Show loading state
+            form.classList.add('loading');
+            btnText.textContent = 'Logging in...';
+            
+            try {
+                const response = await axios.post('/api/auth/login', {
+                    username: username,
+                    password: password
+                });
+                
+                // Store token
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+                
+                // Show success message
+                alertContainer.innerHTML = `<div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle"></i> Login successful! Redirecting...
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>`;
+                
+                // Redirect to dashboard
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+                
+            } catch (error) {
+                form.classList.remove('loading');
+                btnText.textContent = 'Login';
+                
+                let message = 'Login failed. Please try again.';
+                if (error.response && error.response.data && error.response.data.message) {
+                    message = error.response.data.message;
+                }
+                
+                alertContainer.innerHTML = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-circle"></i> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>`;
+            }
+        });
+        
+        // Load saved username if "Remember me" was checked
+        if (localStorage.getItem('rememberUsername')) {
+            document.getElementById('username').value = localStorage.getItem('rememberUsername');
+            document.getElementById('remember').checked = true;
+        }
+        
+        document.getElementById('remember').addEventListener('change', function() {
+            if (this.checked) {
+                localStorage.setItem('rememberUsername', document.getElementById('username').value);
+            } else {
+                localStorage.removeItem('rememberUsername');
+            }
+        });
+    </script>
+</body>
+</html>
