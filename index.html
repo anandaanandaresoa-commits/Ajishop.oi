@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PANEL AJSHOP — Single Page</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root{--bg:#f6f9fc;--card:#fff;--brand1:#667eea;--brand2:#764ba2}
+    body{background:var(--bg);font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial;color:#0f172a}
+    .app{max-width:1100px;margin:28px auto}
+    .brand{color:var(--brand1)}
+    .card{border-radius:12px}
+    header .nav-link{color:#334155}
+    .sidebar{min-width:220px}
+    .hidden{display:none}
+    .small-muted{font-size:13px;color:#64748b}
+    /* login */
+    .login-wrap{display:grid;place-items:center;height:76vh}
+    .login-box{max-width:420px;padding:28px;border-radius:14px;background:linear-gradient(180deg,#fff,#f8fafc);box-shadow:0 8px 30px rgba(15,23,42,0.06)}
+    .gradient-btn{background:linear-gradient(90deg,var(--brand1),var(--brand2));color:#fff}
+    pre{background:#0f172a;color:#e6eef8;padding:12px;border-radius:6px}
+    footer{font-size:13px;color:#94a3b8;margin-top:26px}
+    @media(max-width:991px){.sidebar{display:none}}
+  </style>
+</head>
+<body>
+  <div class="app container">
+    <header class="d-flex align-items-center justify-content-between mb-3">
+      <div>
+        <h3 class="m-0"><span class="brand fw-bold">AJSHOP</span> <small class="small-muted">— Admin Panel (Single Page)</small></h3>
+        <div class="small-muted">Demo build dari nol — client-side mockup</div>
+      </div>
+      <div>
+        <button id="btnInit" class="btn btn-sm btn-outline-secondary me-2">Inisialisasi Data</button>
+        <button id="btnLogout" class="btn btn-sm btn-danger hidden">Logout</button>
+      </div>
+    </header>
+
+    <div id="appShell" class="row">
+      <aside class="col-lg-3 sidebar">
+        <div class="card p-3 mb-3">
+          <div id="panelUser" class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:48px;height:48px">AJ</div>
+            <div>
+              <div id="panelUsername" class="fw-600">Guest</div>
+              <div class="small-muted" id="panelRole">Not logged</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card p-2">
+          <nav class="nav flex-column">
+            <a href="#" class="nav-link" data-page="dashboard"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+            <a href="#" class="nav-link" data-page="members"><i class="bi bi-people me-2"></i>Members</a>
+            <a href="#" class="nav-link" data-page="users"><i class="bi bi-person-badge me-2"></i>Users</a>
+            <a href="#" class="nav-link" data-page="products"><i class="bi bi-box-seam me-2"></i>Products</a>
+            <a href="#" class="nav-link" data-page="summary"><i class="bi bi-file-earmark-text me-2"></i>Rangkuman</a>
+            <a href="#" class="nav-link text-danger mt-2" id="navLogout"><i class="bi bi-box-arrow-right me-2"></i>Keluar</a>
+          </nav>
+        </div>
+      </aside>
+
+      <main class="col-lg-9">
+        <!-- LOGIN -->
+        <section id="pageLogin" class="card login-box login-wrap">
+          <div>
+            <div class="login-box">
+              <h4 class="mb-1">Login Admin</h4>
+              <p class="small-muted mb-3">Gunakan akun default: <code>Ajipang / 775</code></p>
+
+              <div id="loginAlert"></div>
+
+              <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input id="inpUser" class="form-control" placeholder="username">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input id="inpPass" type="password" class="form-control" placeholder="password">
+              </div>
+              <div class="d-grid">
+                <button id="btnLogin" class="btn gradient-btn">Login</button>
+              </div>
+              <hr class="my-3">
+              <div class="small-muted">Halaman demo: semua perubahan tersimpan di localStorage browser. Tidak ada backend.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- DASHBOARD -->
+        <section id="pageDashboard" class="hidden">
+          <div class="card p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h5 class="m-0">Dashboard</h5>
+                <div class="small-muted">Statistik singkat & aktivitas</div>
+              </div>
+              <div>
+                <button id="refreshStats" class="btn btn-sm btn-outline-primary">Refresh</button>
+              </div>
+            </div>
+
+            <div class="row mt-3">
+              <div class="col-sm-6 col-lg-3 mb-3">
+                <div class="card p-3">
+                  <div class="small-muted">Total Users</div>
+                  <div id="statUsers" class="h4 m-0">0</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3 mb-3">
+                <div class="card p-3">
+                  <div class="small-muted">Total Members</div>
+                  <div id="statMembers" class="h4 m-0">0</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3 mb-3">
+                <div class="card p-3">
+                  <div class="small-muted">Products</div>
+                  <div id="statProducts" class="h4 m-0">0</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3 mb-3">
+                <div class="card p-3">
+                  <div class="small-muted">Active Members</div>
+                  <div id="statActive" class="h4 m-0">0</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <h6>Recent Activities</h6>
+              <div id="activityList" class="list-group"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- MEMBERS -->
+        <section id="pageMembers" class="hidden">
+          <div class="card p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div><h5 class="m-0">Members</h5><div class="small-muted">Kelola membership</div></div>
+              <div>
+                <button id="btnCreateMember" class="btn btn-sm btn-primary">Buat Member</button>
+              </div>
+            </div>
+
+            <div class="table-responsive mt-3">
+              <table class="table table-hover" id="tblMembers">
+                <thead class="table-light"><tr><th>ID</th><th>User</th><th>Type</th><th>Status</th><th>Points</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- USERS -->
+        <section id="pageUsers" class="hidden">
+          <div class="card p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div><h5 class="m-0">Users</h5><div class="small-muted">Kelola user dan role</div></div>
+              <div>
+                <button id="btnCreateUser" class="btn btn-sm btn-success">Buat User</button>
+              </div>
+            </div>
+
+            <div class="table-responsive mt-3">
+              <table class="table table-hover" id="tblUsers">
+                <thead class="table-light"><tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Active</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- PRODUCTS -->
+        <section id="pageProducts" class="hidden">
+          <div class="card p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div><h5 class="m-0">Products</h5><div class="small-muted">Kelola produk / paket</div></div>
+              <div>
+                <button id="btnCreateProduct" class="btn btn-sm btn-warning">Tambah Produk</button>
+              </div>
+            </div>
+
+            <div class="table-responsive mt-3">
+              <table class="table table-hover" id="tblProducts">
+                <thead class="table-light"><tr><th>ID</th><th>Nama</th><th>Harga</th><th>Stock</th><th>Category</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SUMMARY -->
+        <section id="pageSummary" class="hidden">
+          <div class="card p-3 mb-3">
+            <h5>Rangkuman Proyek</h5>
+            <p class="small-muted">Ringkasan singkat PANEL AJSHOP — single page demo dari nol.</p>
+            <pre>
+AJSHOP — Admin Panel (Single Page Demo)
+Backend: Mock (storage browser)
+Auth: Demo admin Ajipang:775
+Fitur: Users, Members, Products, Dashboard
+            </pre>
+            <p class="small-muted">Instruksi: Klik <code>Inisialisasi Data</code> untuk membuat data contoh, lalu login.</p>
+          </div>
+        </section>
+
+        <footer>© 2026 AJSHOP — Demo single-file. Data disimpan di browser.</footer>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modals (create/edit) -->
+  <div class="modal fade" id="modalForm" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 id="modalTitle" class="modal-title">Form</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button id="modalSave" type="button" class="btn btn-primary">Simpan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Simple single-file SPA logic storing data in localStorage
+    const DEFAULT_ADMIN = {id:1,username:'Ajipang',email:'admin@ajshop.oi',password:'775',role:'admin',is_active:true};
+
+    // Storage keys
+    const KEY_USERS = 'ajshop_users';
+    const KEY_MEMBERS = 'ajshop_members';
+    const KEY_PRODUCTS = 'ajshop_products';
+    const KEY_ACTIVITIES = 'ajshop_activities';
+    const KEY_AUTH = 'ajshop_auth';
+
+    // Helpers
+    const $ = (s) => document.querySelector(s);
+    const $$ = (s) => document.querySelectorAll(s);
+
+    function nowISO(){return new Date().toISOString();}
+
+    function load(key, fallback){
+      try{const v = localStorage.getItem(key); return v?JSON.parse(v):fallback;}catch(e){return fallback}
+    }
+    function save(key,val){localStorage.setItem(key,JSON.stringify(val));}
+
+    // Init sample data
+    function initData(){
+      // users
+      const users = [DEFAULT_ADMIN,
+        {id:2,username:'john_doe',email:'john@ajshop.oi',password:'password123',role:'moderator',is_active:true},
+        {id:3,username:'jane_smith',email:'jane@ajshop.oi',password:'password123',role:'user',is_active:true}
+      ];
+      save(KEY_USERS,users);
+      // products
+      const prods = [
+        {id:1,name:'Premium Package',price:99900,stock:50,category:'Subscription'},
+        {id:2,name:'Standard Package',price:49900,stock:100,category:'Subscription'},
+      ];
+      save(KEY_PRODUCTS,prods);
+      // members
+      const members = [
+        {id:1,user_id:2,membership_type:'gold',status:'active',points:120,join_date:nowISO(),expiry_date:new Date(Date.now()+31536000000).toISOString()},
+        {id:2,user_id:3,membership_type:'silver',status:'active',points:40,join_date:nowISO(),expiry_date:new Date(Date.now()+15768000000).toISOString()}
+      ];
+      save(KEY_MEMBERS,members);
+      save(KEY_ACTIVITIES,[{id:1,user_id:1,action:'INIT','description':'Database initialized',created_at:nowISO()}]);
+      alert('Data contoh berhasil dibuat. Silakan klik Login (Ajipang:775).');
+      renderAll();
+    }
+
+    // Auth
+    function setAuth(user){save(KEY_AUTH,{user,token:'demo-'+btoa(user.username)});}
+    function clearAuth(){localStorage.removeItem(KEY_AUTH);}
+    function getAuth(){return load(KEY_AUTH,null);}    
+
+    // Activities
+    function pushActivity(user_id,action,description){
+      const acts = load(KEY_ACTIVITIES,[]);
+      acts.unshift({id:Date.now(),user_id,action,description,created_at:nowISO()});
+      save(KEY_ACTIVITIES,acts.slice(0,200));
+    }
+
+    // Renderers
+    function renderUserPanel(){
+      const auth = getAuth();
+      const panelUser = $('#panelUsername');
+      const panelRole = $('#panelRole');
+      if(auth && auth.user){
+        panelUser.textContent = auth.user.username;
+        panelRole.textContent = auth.user.role;
+        $('#btnLogout').classList.remove('hidden');
+      } else {
+        panelUser.textContent = 'Guest';
+        panelRole.textContent = 'Not logged';
+        $('#btnLogout').classList.add('hidden');
+      }
+    }
+
+    function renderStats(){
+      const users = load(KEY_USERS,[]);
+      const members = load(KEY_MEMBERS,[]);
+      const prods = load(KEY_PRODUCTS,[]);
+      const acts = load(KEY_ACTIVITIES,[]);
+      $('#statUsers').textContent = users.length;
+      $('#statMembers').textContent = members.length;
+      $('#statProducts').textContent = prods.length;
+      $('#statActive').textContent = members.filter(m=>m.status==='active').length;
+      const actList = $('#activityList'); actList.innerHTML='';
+      acts.slice(0,8).forEach(a=>{
+        const usr = (load(KEY_USERS,[]).find(u=>u.id===a.user_id)||{username:'System'}).username;
+        const el = document.createElement('div'); el.className='list-group-item';
+        el.innerHTML = `<div class='d-flex justify-content-between'><div><strong>${usr}</strong> <small class='small-muted'>${a.action}</small><div class='small-muted'>${a.description}</div></div><div class='small-muted'>${new Date(a.created_at).toLocaleString()}</div></div>`;
+        actList.appendChild(el);
+      });
+    }
+
+    function renderMembers(){
+      const members = load(KEY_MEMBERS,[]);
+      const users = load(KEY_USERS,[]);
+      const tbody = $('#tblMembers tbody'); tbody.innerHTML='';
+      members.forEach(m=>{
+        const u = users.find(x=>x.id===m.user_id) || {username:'--'};
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${m.id}</td><td>${u.username}</td><td>${m.membership_type}</td><td>${m.status}</td><td>${m.points}</td><td><button class='btn btn-sm btn-outline-primary btnEditMember' data-id='${m.id}'>Edit</button> <button class='btn btn-sm btn-outline-danger btnDelMember' data-id='${m.id}'>Hapus</button></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderUsers(){
+      const users = load(KEY_USERS,[]);
+      const tbody = $('#tblUsers tbody'); tbody.innerHTML='';
+      users.forEach(u=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${u.id}</td><td>${u.username}</td><td>${u.email||''}</td><td>${u.role}</td><td>${u.is_active? 'Yes':'No'}</td><td><button class='btn btn-sm btn-outline-primary btnEditUser' data-id='${u.id}'>Edit</button> <button class='btn btn-sm btn-outline-danger btnDelUser' data-id='${u.id}'>Del</button></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderProducts(){
+      const prods = load(KEY_PRODUCTS,[]);
+      const tbody = $('#tblProducts tbody'); tbody.innerHTML='';
+      prods.forEach(p=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${p.id}</td><td>${p.name}</td><td>Rp ${p.price.toLocaleString()}</td><td>${p.stock}</td><td>${p.category||''}</td><td><button class='btn btn-sm btn-outline-primary btnEditProd' data-id='${p.id}'>Edit</button> <button class='btn btn-sm btn-outline-danger btnDelProd' data-id='${p.id}'>Del</button></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderAll(){ renderUserPanel(); renderStats(); renderMembers(); renderUsers(); renderProducts(); }
+
+    // Navigation
+    function showPage(name){
+      const pages = ['pageLogin','pageDashboard','pageMembers','pageUsers','pageProducts','pageSummary'];
+      pages.forEach(p=>document.getElementById(p).classList.add('hidden'));
+      document.getElementById('page'+(name.charAt(0).toUpperCase()+name.slice(1))).classList.remove('hidden');
+    }
+
+    // Login flow
+    $('#btnLogin').addEventListener('click', ()=>{
+      const u = $('#inpUser').value.trim(); const p = $('#inpPass').value;
+      const users = load(KEY_USERS,[]);
+      const found = users.find(x=>x.username===u && x.password===p);
+      const alertBox = $('#loginAlert'); alertBox.innerHTML='';
+      if(found){
+        setAuth({id:found.id,username:found.username,role:found.role});
+        pushActivity(found.id,'LOGIN','User logged in');
+        renderAll();
+        showPage('dashboard');
+      } else {
+        alertBox.innerHTML = `<div class='alert alert-danger'>Login gagal. Periksa kredensial.</div>`;
+      }
+    });
+
+    // Logout
+    $('#btnLogout').addEventListener('click', ()=>{ clearAuth(); renderAll(); showPage('login'); });
+    $('#navLogout').addEventListener('click', (e)=>{ e.preventDefault(); clearAuth(); renderAll(); showPage('login'); });
+
+    // Init data button
+    $('#btnInit').addEventListener('click', ()=>{ if(confirm('Inisialisasi data contoh? Ini akan menimpa data lokal.')){ initData(); }});
+
+    // Sidebar nav
+    $$('.nav-link[data-page]').forEach(a=>a.addEventListener('click', (e)=>{ e.preventDefault(); const p=a.dataset.page; const auth=getAuth(); if(p!=='login' && !auth){ alert('Silakan login terlebih dahulu.'); showPage('login'); return;} showPage(p); }));
+
+    // CRUD handlers using modal
+    const bsModal = new bootstrap.Modal(document.getElementById('modalForm'));
+    function openModal(title, bodyHtml, onSave){ $('#modalTitle').textContent=title; $('#modalBody').innerHTML=bodyHtml; bsModal.show(); $('#modalSave').onclick = ()=>{ onSave(); bsModal.hide(); renderAll(); }}
+
+    // Create member
+    $('#btnCreateMember').addEventListener('click', ()=>{
+      const users = load(KEY_USERS,[]);
+      const options = users.map(u=>`<option value='${u.id}'>${u.username}</option>`).join('');
+      openModal('Buat Member', `
+        <div class='mb-2'><label>User</label><select id='m_user' class='form-control'>${options}</select></div>
+        <div class='mb-2'><label>Type</label><select id='m_type' class='form-control'><option>gold</option><option>silver</option><option>bronze</option><option>free</option></select></div>
+        <div class='mb-2'><label>Points</label><input id='m_points' class='form-control' value='0'></div>
+      `, ()=>{
+        const members = load(KEY_MEMBERS,[]);
+        const id = members.length?Math.max(...members.map(m=>m.id))+1:1;
+        members.push({id,user_id:parseInt($('#m_user').value),membership_type:$('#m_type').value,status:'active',points:parseInt($('#m_points').value)||0,join_date:nowISO(),expiry_date:new Date(Date.now()+31536000000).toISOString()});
+        save(KEY_MEMBERS,members); pushActivity(getAuth().user.id,'CREATE_MEMBER','Created member');
+      });
+    });
+
+    // Delegation for member edit/delete
+    document.addEventListener('click', (e)=>{
+      if(e.target.classList.contains('btnDelMember')){
+        const id = parseInt(e.target.dataset.id);
+        if(confirm('Hapus member?')){let arr=load(KEY_MEMBERS,[]); arr=arr.filter(x=>x.id!==id); save(KEY_MEMBERS,arr); pushActivity(getAuth().user.id,'DELETE_MEMBER',`Deleted member ${id}`); renderAll();}
+      }
+      if(e.target.classList.contains('btnEditMember')){
+        const id = parseInt(e.target.dataset.id);
+        const members = load(KEY_MEMBERS,[]); const m = members.find(x=>x.id===id);
+        openModal('Edit Member', `
+          <div class='mb-2'><label>Type</label><input id='m_type' class='form-control' value='${m.membership_type}'></div>
+          <div class='mb-2'><label>Status</label><input id='m_status' class='form-control' value='${m.status}'></div>
+          <div class='mb-2'><label>Points</label><input id='m_points' class='form-control' value='${m.points}'></div>
+        `, ()=>{ m.membership_type=$('#m_type').value; m.status=$('#m_status').value; m.points=parseInt($('#m_points').value)||0; save(KEY_MEMBERS,members); pushActivity(getAuth().user.id,'UPDATE_MEMBER',`Updated member ${id}`); });
+      }
+
+      // Users
+      if(e.target.classList.contains('btnCreateUser')) return;
+      if(e.target.classList.contains('btnDelUser')){
+        const id = parseInt(e.target.dataset.id); if(confirm('Hapus user?')){ let arr=load(KEY_USERS,[]); arr=arr.filter(x=>x.id!==id); save(KEY_USERS,arr); pushActivity(getAuth().user.id,'DELETE_USER',`Deleted user ${id}`); renderAll(); }
+      }
+      if(e.target.classList.contains('btnEditUser')){
+        const id = parseInt(e.target.dataset.id); const arr=load(KEY_USERS,[]); const u=arr.find(x=>x.id===id);
+        openModal('Edit User', `
+          <div class='mb-2'><label>Username</label><input id='u_username' class='form-control' value='${u.username}'></div>
+          <div class='mb-2'><label>Email</label><input id='u_email' class='form-control' value='${u.email||''}'></div>
+          <div class='mb-2'><label>Role</label><select id='u_role' class='form-control'><option ${u.role==='admin'?'selected':''}>admin</option><option ${u.role==='moderator'?'selected':''}>moderator</option><option ${u.role==='user'?'selected':''}>user</option></select></div>
+          <div class='mb-2'><label>Active</label><select id='u_active' class='form-control'><option value=true ${u.is_active? 'selected':''}>Yes</option><option value=false ${!u.is_active? 'selected':''}>No</option></select></div>
+        `, ()=>{ u.username=$('#u_username').value; u.email=$('#u_email').value; u.role=$('#u_role').value; u.is_active=($('#u_active').value==='true'); save(KEY_USERS,arr); pushActivity(getAuth().user.id,'UPDATE_USER',`Updated user ${id}`); });
+      }
+
+      // Products
+      if(e.target.classList.contains('btnDelProd')){ const id=parseInt(e.target.dataset.id); if(confirm('Hapus produk?')){ let arr=load(KEY_PRODUCTS,[]); arr=arr.filter(x=>x.id!==id); save(KEY_PRODUCTS,arr); pushActivity(getAuth().user.id,'DELETE_PRODUCT',`Deleted product ${id}`); renderAll(); } }
+      if(e.target.classList.contains('btnEditProd')){ const id=parseInt(e.target.dataset.id); let arr=load(KEY_PRODUCTS,[]); let p=arr.find(x=>x.id===id); openModal('Edit Product', `
+        <div class='mb-2'><label>Nama</label><input id='p_name' class='form-control' value='${p.name}'></div>
+        <div class='mb-2'><label>Harga (IDR)</label><input id='p_price' class='form-control' value='${p.price}'></div>
+        <div class='mb-2'><label>Stock</label><input id='p_stock' class='form-control' value='${p.stock}'></div>
+        <div class='mb-2'><label>Category</label><input id='p_cat' class='form-control' value='${p.category||''}'></div>
+      `, ()=>{ p.name=$('#p_name').value; p.price=parseInt($('#p_price').value)||0; p.stock=parseInt($('#p_stock').value)||0; p.category=$('#p_cat').value; save(KEY_PRODUCTS,arr); pushActivity(getAuth().user.id,'UPDATE_PRODUCT',`Updated product ${id}`); renderAll(); }); }
+
+    });
+
+    // Create user/product buttons
+    $('#btnCreateUser').addEventListener('click', ()=>{
+      openModal('Buat User', `
+        <div class='mb-2'><label>Username</label><input id='u_username' class='form-control'></div>
+        <div class='mb-2'><label>Email</label><input id='u_email' class='form-control'></div>
+        <div class='mb-2'><label>Password</label><input id='u_pass' class='form-control'></div>
+        <div class='mb-2'><label>Role</label><select id='u_role' class='form-control'><option>user</option><option>moderator</option><option>admin</option></select></div>
+      `, ()=>{ let arr=load(KEY_USERS,[]); const id = arr.length?Math.max(...arr.map(x=>x.id))+1:1; arr.push({id,username:$('#u_username').value,email:$('#u_email').value,password:$('#u_pass').value,role:$('#u_role').value,is_active:true}); save(KEY_USERS,arr); pushActivity(getAuth().user.id,'CREATE_USER','Created user'); });
+    });
+
+    $('#btnCreateProduct').addEventListener('click', ()=>{
+      openModal('Tambah Product', `
+        <div class='mb-2'><label>Nama</label><input id='p_name' class='form-control'></div>
+        <div class='mb-2'><label>Harga (IDR)</label><input id='p_price' class='form-control' value='0'></div>
+        <div class='mb-2'><label>Stock</label><input id='p_stock' class='form-control' value='0'></div>
+        <div class='mb-2'><label>Category</label><input id='p_cat' class='form-control'></div>
+      `, ()=>{ let arr=load(KEY_PRODUCTS,[]); const id = arr.length?Math.max(...arr.map(x=>x.id))+1:1; arr.push({id,name:$('#p_name').value,price:parseInt($('#p_price').value)||0,stock:parseInt($('#p_stock').value)||0,category:$('#p_cat').value}); save(KEY_PRODUCTS,arr); pushActivity(getAuth().user.id,'CREATE_PRODUCT','Created product'); });
+    });
+
+    // Refresh stats
+    $('#refreshStats').addEventListener('click', ()=>{ renderStats(); });
+
+    // Initial rendering & start
+    (function(){ if(!load(KEY_USERS,[]).length){} renderAll(); showPage('login'); })();
+
+  </script>
+</body>
+</html>
