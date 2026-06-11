@@ -16,9 +16,6 @@
     .sidebar{min-width:220px}
     .hidden{display:none}
     .small-muted{font-size:13px;color:#64748b}
-    /* login */
-    .login-wrap{display:grid;place-items:center;height:76vh}
-    .login-box{max-width:420px;padding:28px;border-radius:14px;background:linear-gradient(180deg,#fff,#f8fafc);box-shadow:0 8px 30px rgba(15,23,42,0.06)}
     .gradient-btn{background:linear-gradient(90deg,var(--brand1),var(--brand2));color:#fff}
     pre{background:#0f172a;color:#e6eef8;padding:12px;border-radius:6px}
     footer{font-size:13px;color:#94a3b8;margin-top:26px}
@@ -34,7 +31,7 @@
       </div>
       <div>
         <button id="btnInit" class="btn btn-sm btn-outline-secondary me-2">Inisialisasi Data</button>
-        <button id="btnLogout" class="btn btn-sm btn-danger hidden">Logout</button>
+        <button id="btnLogout" class="btn btn-sm btn-danger">Logout</button>
       </div>
     </header>
 
@@ -63,34 +60,8 @@
       </aside>
 
       <main class="col-lg-9">
-        <!-- LOGIN -->
-        <section id="pageLogin" class="card login-box login-wrap">
-          <div>
-            <div class="login-box">
-              <h4 class="mb-1">Login Admin</h4>
-              <p class="small-muted mb-3">Gunakan akun default: <code>Ajipang / 775</code></p>
-
-              <div id="loginAlert"></div>
-
-              <div class="mb-3">
-                <label class="form-label">Username</label>
-                <input id="inpUser" class="form-control" placeholder="username">
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Password</label>
-                <input id="inpPass" type="password" class="form-control" placeholder="password">
-              </div>
-              <div class="d-grid">
-                <button id="btnLogin" class="btn gradient-btn">Login</button>
-              </div>
-              <hr class="my-3">
-              <div class="small-muted">Halaman demo: semua perubahan tersimpan di localStorage browser. Tidak ada backend.</div>
-            </div>
-          </div>
-        </section>
-
         <!-- DASHBOARD -->
-        <section id="pageDashboard" class="hidden">
+        <section id="pageDashboard">
           <div class="card p-3 mb-3">
             <div class="d-flex justify-content-between align-items-center">
               <div>
@@ -204,7 +175,7 @@ Backend: Mock (storage browser)
 Auth: Demo admin Ajipang:775
 Fitur: Users, Members, Products, Dashboard
             </pre>
-            <p class="small-muted">Instruksi: Klik <code>Inisialisasi Data</code> untuk membuat data contoh, lalu login.</p>
+            <p class="small-muted">Instruksi: Klik <code>Inisialisasi Data</code> untuk membuat data contoh jika belum ada.</p>
           </div>
         </section>
 
@@ -273,8 +244,8 @@ Fitur: Users, Members, Products, Dashboard
         {id:2,user_id:3,membership_type:'silver',status:'active',points:40,join_date:nowISO(),expiry_date:new Date(Date.now()+15768000000).toISOString()}
       ];
       save(KEY_MEMBERS,members);
-      save(KEY_ACTIVITIES,[{id:1,user_id:1,action:'INIT','description':'Database initialized',created_at:nowISO()}]);
-      alert('Data contoh berhasil dibuat. Silakan klik Login (Ajipang:775).');
+      save(KEY_ACTIVITIES,[{id:1,user_id:1,action:'INIT',description:'Database initialized',created_at:nowISO()}]);
+      alert('Data contoh berhasil dibuat. Panel akan otomatis login sebagai Ajipang.');
       renderAll();
     }
 
@@ -298,11 +269,9 @@ Fitur: Users, Members, Products, Dashboard
       if(auth && auth.user){
         panelUser.textContent = auth.user.username;
         panelRole.textContent = auth.user.role;
-        $('#btnLogout').classList.remove('hidden');
       } else {
         panelUser.textContent = 'Guest';
         panelRole.textContent = 'Not logged';
-        $('#btnLogout').classList.add('hidden');
       }
     }
 
@@ -360,36 +329,20 @@ Fitur: Users, Members, Products, Dashboard
 
     // Navigation
     function showPage(name){
-      const pages = ['pageLogin','pageDashboard','pageMembers','pageUsers','pageProducts','pageSummary'];
+      const pages = ['pageDashboard','pageMembers','pageUsers','pageProducts','pageSummary'];
       pages.forEach(p=>document.getElementById(p).classList.add('hidden'));
       document.getElementById('page'+(name.charAt(0).toUpperCase()+name.slice(1))).classList.remove('hidden');
     }
 
-    // Login flow
-    $('#btnLogin').addEventListener('click', ()=>{
-      const u = $('#inpUser').value.trim(); const p = $('#inpPass').value;
-      const users = load(KEY_USERS,[]);
-      const found = users.find(x=>x.username===u && x.password===p);
-      const alertBox = $('#loginAlert'); alertBox.innerHTML='';
-      if(found){
-        setAuth({id:found.id,username:found.username,role:found.role});
-        pushActivity(found.id,'LOGIN','User logged in');
-        renderAll();
-        showPage('dashboard');
-      } else {
-        alertBox.innerHTML = `<div class='alert alert-danger'>Login gagal. Periksa kredensial.</div>`;
-      }
-    });
-
     // Logout
-    $('#btnLogout').addEventListener('click', ()=>{ clearAuth(); renderAll(); showPage('login'); });
-    $('#navLogout').addEventListener('click', (e)=>{ e.preventDefault(); clearAuth(); renderAll(); showPage('login'); });
+    $('#btnLogout').addEventListener('click', ()=>{ clearAuth(); renderAll(); showPage('dashboard'); });
+    $('#navLogout').addEventListener('click', (e)=>{ e.preventDefault(); clearAuth(); renderAll(); showPage('dashboard'); });
 
     // Init data button
     $('#btnInit').addEventListener('click', ()=>{ if(confirm('Inisialisasi data contoh? Ini akan menimpa data lokal.')){ initData(); }});
 
     // Sidebar nav
-    $$('.nav-link[data-page]').forEach(a=>a.addEventListener('click', (e)=>{ e.preventDefault(); const p=a.dataset.page; const auth=getAuth(); if(p!=='login' && !auth){ alert('Silakan login terlebih dahulu.'); showPage('login'); return;} showPage(p); }));
+    $$('.nav-link[data-page]').forEach(a=>a.addEventListener('click', (e)=>{ e.preventDefault(); const p=a.dataset.page; showPage(p); }));
 
     // CRUD handlers using modal
     const bsModal = new bootstrap.Modal(document.getElementById('modalForm'));
@@ -428,7 +381,6 @@ Fitur: Users, Members, Products, Dashboard
       }
 
       // Users
-      if(e.target.classList.contains('btnCreateUser')) return;
       if(e.target.classList.contains('btnDelUser')){
         const id = parseInt(e.target.dataset.id); if(confirm('Hapus user?')){ let arr=load(KEY_USERS,[]); arr=arr.filter(x=>x.id!==id); save(KEY_USERS,arr); pushActivity(getAuth().user.id,'DELETE_USER',`Deleted user ${id}`); renderAll(); }
       }
@@ -475,8 +427,16 @@ Fitur: Users, Members, Products, Dashboard
     // Refresh stats
     $('#refreshStats').addEventListener('click', ()=>{ renderStats(); });
 
-    // Initial rendering & start
-    (function(){ if(!load(KEY_USERS,[]).length){} renderAll(); showPage('login'); })();
+    // Initial rendering & start: auto-login as admin and show dashboard
+    (function(){
+      // If no users/data, leave data empty until user clicks Inisialisasi Data
+      if(!getAuth()){
+        // Auto set admin auth so the main menu is accessible immediately
+        setAuth(DEFAULT_ADMIN);
+      }
+      renderAll();
+      showPage('dashboard');
+    })();
 
   </script>
 </body>
